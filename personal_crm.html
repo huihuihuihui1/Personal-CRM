@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>个人CRM系统</title>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <!-- 侧边导航栏 -->
+        <div class="w-64 bg-gray-800 text-white p-6">
+            <h3 class="text-xl font-bold mb-6">个人CRM</h3>
+            <ul class="space-y-4">
+                <li><a href="#" data-target="dashboard" class="hover:text-gray-300">仪表盘</a></li>
+                <li><a href="#" data-target="contact-management" class="hover:text-gray-300">联系人管理</a></li>
+                <li><a href="#" data-target="reminder" class="hover:text-gray-300">提醒管理</a></li>
+                <li><a href="#" data-target="diary" class="hover:text-gray-300">资金/日记管理</a></li>
+                <li><a href="#" data-target="fund-management" class="hover:text-gray-300">资金管理</a></li>
+            </ul>
+        </div>
+        <!-- 主内容区域 -->
+        <div class="flex-1 p-8">
+            <!-- 仪表盘 -->
+            <div id="dashboard" class="bg-white p-8 shadow-md rounded-md mb-8">
+                <h1 class="text-2xl font-bold mb-4">仪表盘</h1>
+                <p>近期活动：近三个月无提醒事项</p>
+                <p>更新日志：历史功能更新记录</p>
+                <button id="add-contact-btn" class="bg-blue-500 text-white p-2 rounded-md mt-4">添加某人</button>
+            </div>
+
+            <!-- 联系人管理 -->
+            <div id="contact-management" class="bg-white p-8 shadow-md rounded-md mb-8 hidden">
+                <h2 class="text-xl font-bold mb-4">联系人管理</h2>
+                <!-- 添加联系人表单 -->
+                <form id="add-contact-form" class="mb-4 hidden">
+                    <input type="text" name="name" placeholder="名字" class="border p-2 rounded-md w-full mb-2" required>
+                    <input type="text" name="middleName" placeholder="中间名" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="lastName" placeholder="姓氏" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="nickname" placeholder="昵称" class="border p-2 rounded-md w-full mb-2">
+                    <input type="email" name="email" placeholder="邮箱" class="border p-2 rounded-md w-full mb-2">
+                    <select name="gender" class="border p-2 rounded-md w-full mb-2">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                        <option value="自定义">自定义</option>
+                    </select>
+                    <input type="text" name="relationship" placeholder="与联系人的关系" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="acquaintance" placeholder="相识方式" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="note" placeholder="备注" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="address" placeholder="地址" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="phone" placeholder="电话号码" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="pet" placeholder="宠物" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="tags" placeholder="标签（逗号分隔）" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="company" placeholder="公司" class="border p-2 rounded-md w-full mb-2">
+                    <input type="text" name="position" placeholder="岗位" class="border p-2 rounded-md w-full mb-2">
+                    <button type="submit" class="bg-green-500 text-white p-2 rounded-md">保存联系人</button>
+                </form>
+                
+                <!-- 信息追踪表单 -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-bold mb-4">互动历史记录</h3>
+                    <form id="add-interaction-form" class="mb-4">
+                    <select name="contactId" id="contact-select" class="border p-2 rounded-md w-full mb-2" required>
+                        <option value="">选择联系人</option>
+                    </select>
+                        <input type="datetime-local" name="interactionTime" class="border p-2 rounded-md w-full mb-2" required>
+                        <input type="text" name="event" placeholder="事件描述" class="border p-2 rounded-md w-full mb-2" required>
+                        <input type="text" name="requirement" placeholder="对方需求" class="border p-2 rounded-md w-full mb-2">
+                        <input type="datetime-local" name="solutionTime" placeholder="解决时间" class="border p-2 rounded-md w-full mb-2">
+                        <textarea name="feedback" placeholder="对方反馈" class="border p-2 rounded-md w-full mb-2" rows="2"></textarea>
+                        <button type="submit" class="bg-blue-500 text-white p-2 rounded-md">添加记录</button>
+                    </form>
+                    
+                    <!-- 信息追踪表格 -->
+                    <div id="interaction-history">
+                        <table class="min-w-full border">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border p-2">时间</th>
+                                    <th class="border p-2">事件</th>
+                                    <th class="border p-2">需求</th>
+                                    <th class="border p-2">解决时间</th>
+                                    <th class="border p-2">反馈</th>
+                                    <th class="border p-2">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interaction-list">
+                            </tbody>
+                            <script>
+                                // 加载互动历史记录
+                                function loadInteractions() {
+                                    const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+                                    const interactionList = document.getElementById('interaction-list');
+                                    interactionList.innerHTML = '';
+                                    
+                                    interactions.forEach((interaction, index) => {
+                                        const row = document.createElement('tr');
+                                        row.innerHTML = `
+                                            <td class="border p-2">${interaction.interactionTime}</td>
+                                            <td class="border p-2">${interaction.event}</td>
+                                            <td class="border p-2">${interaction.requirement}</td>
+                                            <td class="border p-2">${interaction.solutionTime}</td>
+                                            <td class="border p-2">${interaction.feedback}</td>
+                                            <td class="border p-2">
+                                                <button class="bg-red-500 text-white p-1 rounded-md delete-interaction" data-index="${index}">删除</button>
+                                            </td>
+                                        `;
+                                        interactionList.appendChild(row);
+                                    });
+                                    
+                                    // 添加删除事件监听
+                                    document.querySelectorAll('.delete-interaction').forEach(btn => {
+                                        btn.addEventListener('click', function() {
+                                            const index = this.dataset.index;
+                                            const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+                                            interactions.splice(index, 1);
+                                            localStorage.setItem('interactions', JSON.stringify(interactions));
+                                            loadInteractions();
+                                        });
+                                    });
+                                }
+                                
+                                // 初始化加载互动历史记录
+                                loadInteractions();
+                            </script>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 联系人列表 -->
+                <div id="contact-list"></div>
+            </div>
+
+            <!-- 查看联系人信息模块 -->
+            <div id="view-contact" class="bg-white p-8 shadow-md rounded-md mb-8 hidden">
+                <h2 class="text-xl font-bold mb-4">查看联系人信息</h2>
+                <div id="view-contact-details" class="space-y-4">
+                    <p><strong>姓名：</strong><span id="view-name"></span></p>
+                    <p><strong>公司：</strong><span id="view-company"></span></p>
+                    <p><strong>岗位：</strong><span id="view-position"></span></p>
+                    <p><strong>电话：</strong><span id="view-phone"></span></p>
+                    <p><strong>邮箱：</strong><span id="view-email"></span></p>
+                </div>
+                <button id="back-to-contact-list" class="bg-blue-500 text-white p-2 rounded-md">返回联系人列表</button>
+            </div>
+
+            <!-- 提醒功能 -->
+            <div id="reminder" class="bg-white p-8 shadow-md rounded-md mb-8 hidden">
+                <h2 class="text-xl font-bold mb-4">提醒功能</h2>
+                <button id="add-reminder-btn" class="bg-green-500 text-white p-2 rounded-md mb-4">添加提醒</button>
+                
+                <!-- 添加提醒表单 -->
+                <form id="add-reminder-form" class="mb-4 hidden">
+                    <input type="datetime-local" name="time" class="border p-2 rounded-md w-full mb-2" required>
+                    <input type="text" name="location" placeholder="地点" class="border p-2 rounded-md w-full mb-2" required>
+                    <input type="text" name="event" placeholder="事件" class="border p-2 rounded-md w-full mb-2" required>
+                    <button type="submit" class="bg-green-500 text-white p-2 rounded-md">保存提醒</button>
+                </form>
+                
+                <!-- 提醒列表 -->
+                <div id="reminder-list"></div>
+            </div>
+
+            <!-- 日记功能 -->
+            <div id="diary" class="bg-white p-8 shadow-md rounded-md mb-8 hidden">
+            
+            <!-- 资金管理 -->
+            <div id="fund-management" class="bg-white p-8 shadow-md rounded-md mb-8 hidden">
+                <h2 class="text-xl font-bold mb-4">资金管理</h2>
+                
+                <!-- 财务数据输入表单 -->
+                <form id="add-fund-form" class="mb-4">
+                    <select name="type" class="border p-2 rounded-md w-full mb-2" required>
+                        <option value="income">收入</option>
+                        <option value="expense">支出</option>
+                    </select>
+                    <input type="text" name="category" placeholder="类别" class="border p-2 rounded-md w-full mb-2" required>
+                    <input type="number" name="amount" placeholder="金额" class="border p-2 rounded-md w-full mb-2" required>
+                    <input type="date" name="date" class="border p-2 rounded-md w-full mb-2" required>
+                    <textarea name="description" placeholder="描述" class="border p-2 rounded-md w-full mb-2" rows="2"></textarea>
+                    <button type="submit" class="bg-green-500 text-white p-2 rounded-md">保存记录</button>
+                </form>
+                
+                <!-- 财务指标计算 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold mb-2">财务指标</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div class="bg-blue-100 p-4 rounded-md">
+                            <p class="font-semibold">总收入</p>
+                            <p id="total-income" class="text-2xl">0</p>
+                        </div>
+                        <div class="bg-red-100 p-4 rounded-md">
+                            <p class="font-semibold">总支出</p>
+                            <p id="total-expense" class="text-2xl">0</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-md">
+                            <p class="font-semibold">结余</p>
+                            <p id="balance" class="text-2xl">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表展示区域 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold mb-2">收支趋势</h3>
+                    <canvas id="fund-chart" width="400" height="200"></canvas>
+                </div>
+                
+                <!-- 财务记录列表 -->
+                <div id="fund-list"></div>
+                
+                <script>
+                    // 加载Chart.js库
+                    const chartScript = document.createElement('script');
+                    chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                    document.head.appendChild(chartScript);
+                    
+                    // 初始化财务数据
+                    let funds = JSON.parse(localStorage.getItem('funds')) || [];
+                    
+                    // 表单提交处理
+                    document.getElementById('add-fund-form').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        const fundRecord = {
+                            type: formData.get('type'),
+                            category: formData.get('category'),
+                            amount: parseFloat(formData.get('amount')),
+                            date: formData.get('date'),
+                            description: formData.get('description')
+                        };
+                        
+                        funds.push(fundRecord);
+                        localStorage.setItem('funds', JSON.stringify(funds));
+                        this.reset();
+                        updateFundDisplay();
+                    });
+                    
+                    // 更新财务显示
+                    function updateFundDisplay() {
+                        // 计算财务指标
+                        const totalIncome = funds
+                            .filter(f => f.type === 'income')
+                            .reduce((sum, f) => sum + f.amount, 0);
+                        
+                        const totalExpense = funds
+                            .filter(f => f.type === 'expense')
+                            .reduce((sum, f) => sum + f.amount, 0);
+                        
+                        const balance = totalIncome - totalExpense;
+                        
+                        // 更新指标显示
+                        document.getElementById('total-income').textContent = totalIncome.toFixed(2);
+                        document.getElementById('total-expense').textContent = totalExpense.toFixed(2);
+                        document.getElementById('balance').textContent = balance.toFixed(2);
+                        
+                        // 更新记录列表
+                        const fundList = document.getElementById('fund-list');
+                        fundList.innerHTML = '';
+                        
+                        funds.forEach((fund, index) => {
+                            const fundItem = document.createElement('div');
+                            fundItem.className = 'border p-4 mb-2 rounded-md';
+                            fundItem.innerHTML = `
+                                <p><strong>类型：</strong>${fund.type === 'income' ? '收入' : '支出'}</p>
+                                <p><strong>类别：</strong>${fund.category}</p>
+                                <p><strong>金额：</strong>${fund.amount.toFixed(2)}</p>
+                                <p><strong>日期：</strong>${fund.date}</p>
+                                <p><strong>描述：</strong>${fund.description || '无'}</p>
+                                <button class="bg-red-500 text-white p-1 rounded-md mt-2 delete-fund" data-index="${index}">删除</button>
+                            `;
+                            fundList.appendChild(fundItem);
+                        });
+                        
+                        // 添加删除事件监听
+                        document.querySelectorAll('.delete-fund').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const index = this.dataset.index;
+                                funds.splice(index, 1);
+                                localStorage.setItem('funds', JSON.stringify(funds));
+                                updateFundDisplay();
+                            });
+                        });
+                        
+                        // 更新图表
+                        updateFundChart();
+                    }
+                    
+                    // 更新财务图表
+                    function updateFundChart() {
+                        const ctx = document.getElementById('fund-chart').getContext('2d');
+                        
+                        // 按日期分组数据
+                        const dateGroups = {};
+                        funds.forEach(fund => {
+                            if (!dateGroups[fund.date]) {
+                                dateGroups[fund.date] = { income: 0, expense: 0 };
+                            }
+                            if (fund.type === 'income') {
+                                dateGroups[fund.date].income += fund.amount;
+                            } else {
+                                dateGroups[fund.date].expense += fund.amount;
+                            }
+                        });
+                        
+                        const dates = Object.keys(dateGroups).sort();
+                        const incomeData = dates.map(date => dateGroups[date].income);
+                        const expenseData = dates.map(date => dateGroups[date].expense);
+                        
+                        // 创建或更新图表
+                        if (window.fundChart) {
+                            window.fundChart.data.labels = dates;
+                            window.fundChart.data.datasets[0].data = incomeData;
+                            window.fundChart.data.datasets[1].data = expenseData;
+                            window.fundChart.update();
+                        } else {
+                            window.fundChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: dates,
+                                    datasets: [
+                                        {
+                                            label: '收入',
+                                            data: incomeData,
+                                            borderColor: 'rgb(59, 130, 246)',
+                                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                            tension: 0.1
+                                        },
+                                        {
+                                            label: '支出',
+                                            data: expenseData,
+                                            borderColor: 'rgb(239, 68, 68)',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                            tension: 0.1
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        title: {
+                                            display: true,
+                                            text: '收支趋势'
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    // 初始化加载财务数据
+                    updateFundDisplay();
+                </script>
+            </div>
+                <h2 class="text-xl font-bold mb-4">日记功能</h2>
+                <div class="mb-4 flex items-center">
+                    <input type="date" id="diary-date-filter" class="border p-2 rounded-md mr-2">
+                    <button id="filter-diary-btn" class="bg-blue-500 text-white p-2 rounded-md">按日期筛选</button>
+                    <button id="reset-diary-filter" class="bg-gray-500 text-white p-2 rounded-md ml-2">重置筛选</button>
+                </div>
+                <form id="add-diary-form" class="mb-4">
+                    <textarea name="content" placeholder="记录生活中的点滴" class="border p-2 rounded-md w-full mb-2" rows="4" required></textarea>
+                    <input type="text" name="feeling" placeholder="记录一天的感受" class="border p-2 rounded-md w-full mb-2" required>
+                    <button type="submit" class="bg-yellow-500 text-white p-2 rounded-md">保存日记</button>
+                </form>
+                <div id="diary-list"></div>
+                
+                <script>
+                    // 加载日记列表
+                    function loadDiaries(dateFilter = null) {
+                        const diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+                        const diaryList = document.getElementById('diary-list');
+                        diaryList.innerHTML = '';
+                        
+                        let filteredDiaries = diaries;
+                        if (dateFilter) {
+                            filteredDiaries = diaries.filter(diary => {
+                                const diaryDate = new Date(diary.date).toISOString().split('T')[0];
+                                return diaryDate === dateFilter;
+                            });
+                        }
+                        
+                        diaries.forEach((diary, index) => {
+                            const diaryItem = document.createElement('div');
+                            diaryItem.classList.add('border', 'p-4', 'rounded-md', 'mb-4');
+                            diaryItem.innerHTML = `
+                                <p>日期: ${new Date(diary.date).toLocaleString()}</p>
+                                <p>内容: ${diary.content.substring(0, 50)}${diary.content.length > 50 ? '...' : ''}</p>
+                                <p>心情: ${diary.feeling}</p>
+                                <button class="bg-blue-500 text-white p-2 rounded-md mr-2 view-diary" data-index="${index}">查看</button>
+                                <button class="bg-yellow-500 text-white p-2 rounded-md mr-2 edit-diary" data-index="${index}">编辑</button>
+                                <button class="bg-red-500 text-white p-2 rounded-md delete-diary" data-index="${index}">删除</button>
+                            `;
+                            diaryList.appendChild(diaryItem);
+                            
+                            // 添加按钮事件
+                            diaryItem.querySelector('.delete-diary').addEventListener('click', function() {
+                                deleteDiary(index);
+                            });
+                            
+                            diaryItem.querySelector('.edit-diary').addEventListener('click', function() {
+                                editDiary(index);
+                            });
+                        });
+                    }
+                    
+                    // 删除日记
+                    function deleteDiary(index) {
+                        const diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+                        diaries.splice(index, 1);
+                        localStorage.setItem('diaries', JSON.stringify(diaries));
+                        loadDiaries();
+                    }
+                    
+                    // 编辑日记
+                    function editDiary(index) {
+                        const diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+                        const diary = diaries[index];
+                        const form = document.getElementById('add-diary-form');
+                        
+                        // 填充表单
+                        form.querySelector('[name="content"]').value = diary.content;
+                        form.querySelector('[name="feeling"]').value = diary.feeling;
+                        
+                        // 更新表单提交事件
+                        form.onsubmit = function(e) {
+                            e.preventDefault();
+                            diaries[index] = {
+                                date: new Date().toISOString(),
+                                content: form.querySelector('[name="content"]').value,
+                                feeling: form.querySelector('[name="feeling"]').value
+                            };
+                            localStorage.setItem('diaries', JSON.stringify(diaries));
+                            form.reset();
+                            loadDiaries();
+                        };
+                    }
+                    
+                    // 添加日记表单提交
+                    document.getElementById('add-diary-form').onsubmit = function(e) {
+                        e.preventDefault();
+                        const form = document.getElementById('add-diary-form');
+                        const diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+                        
+                        diaries.push({
+                            date: new Date().toISOString(),
+                            content: form.querySelector('[name="content"]').value,
+                            feeling: form.querySelector('[name="feeling"]').value
+                        });
+                        
+                        localStorage.setItem('diaries', JSON.stringify(diaries));
+                        form.reset();
+                        loadDiaries();
+                    };
+                    
+                    // 初始化加载日记列表
+                    loadDiaries();
+                    
+                    // 添加日期筛选按钮事件
+                    document.getElementById('filter-diary-btn').addEventListener('click', function() {
+                        const dateInput = document.getElementById('diary-date-filter');
+                        if (dateInput.value) {
+                            loadDiaries(dateInput.value);
+                        }
+                    });
+                    
+                    // 添加重置筛选按钮事件
+                    document.getElementById('reset-diary-filter').addEventListener('click', function() {
+                        document.getElementById('diary-date-filter').value = '';
+                        loadDiaries();
+                    });
+                </script>
+            </div>
+
+            <!-- 文件管理 -->
+            
+
+            <!-- 自定义设置 -->
+            
+
+            <!-- 资金管理 -->
+            <div id="fund-management" class="bg-white p-8 shadow-md rounded-md hidden">
+                <h2 class="text-xl font-bold mb-4">资金管理</h2>
+                <p>这里可以添加资金管理的具体内容。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const navLinks = document.querySelectorAll('.bg-gray-800 ul li a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.dataset.target;
+                const allSections = document.querySelectorAll('.flex-1 > div');
+                allSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                const targetSection = document.getElementById(targetId);
+                targetSection.classList.remove('hidden');
+                
+                // 如果切换到提醒页面，加载提醒列表
+                if (targetId === 'reminder') {
+                    loadReminders();
+                }
+                // 如果切换到日记页面，加载日记列表
+                if (targetId === 'diary') {
+                    loadDiaries();
+                }
+            });
+        });
+        
+        // 添加提醒按钮点击事件
+        document.getElementById('add-reminder-btn').addEventListener('click', function() {
+            const form = document.getElementById('add-reminder-form');
+            form.classList.remove('hidden');
+        });
+        
+        // 从localStorage加载提醒数据
+        function loadReminders() {
+            const reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+            const reminderList = document.getElementById('reminder-list');
+            reminderList.innerHTML = '';
+            
+            reminders.forEach((reminder, index) => {
+                const reminderDate = new Date(reminder.time);
+                const now = new Date();
+                const timeDiff = reminderDate - now;
+                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                
+                const reminderItem = document.createElement('div');
+                reminderItem.classList.add('border', 'p-4', 'rounded-md', 'mb-4');
+                reminderItem.innerHTML = `
+                    <p>时间: ${reminderDate.toLocaleString()}</p>
+                    <p>地点: ${reminder.location}</p>
+                    <p>事件: ${reminder.event}</p>
+                    <p>剩余天数: ${daysLeft > 0 ? daysLeft : '已过期'}</p>
+                    <button class="bg-blue-500 text-white p-2 rounded-md mr-2 view-reminder" data-index="${index}">查看</button>
+                    <button class="bg-yellow-500 text-white p-2 rounded-md mr-2 edit-reminder" data-index="${index}">编辑</button>
+                    <button class="bg-red-500 text-white p-2 rounded-md delete-reminder" data-index="${index}">删除</button>
+                `;
+                reminderList.appendChild(reminderItem);
+                
+                // 添加按钮事件
+                reminderItem.querySelector('.delete-reminder').addEventListener('click', function() {
+                    deleteReminder(index);
+                });
+                
+                reminderItem.querySelector('.edit-reminder').addEventListener('click', function() {
+                    editReminder(index);
+                });
+            });
+        }
+        
+        // 删除提醒
+        function deleteReminder(index) {
+            const reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+            reminders.splice(index, 1);
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            loadReminders();
+        }
+        
+        // 编辑提醒
+        function editReminder(index) {
+            const reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+            const reminder = reminders[index];
+            const form = document.getElementById('add-reminder-form');
+            
+            // 填充表单
+            form.querySelector('[name="time"]').value = reminder.time;
+            form.querySelector('[name="location"]').value = reminder.location;
+            form.querySelector('[name="event"]').value = reminder.event;
+            
+            // 显示表单
+            form.classList.remove('hidden');
+            
+            // 更新表单提交事件
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                reminders[index] = {
+                    time: form.querySelector('[name="time"]').value,
+                    location: form.querySelector('[name="location"]').value,
+                    event: form.querySelector('[name="event"]').value
+                };
+                localStorage.setItem('reminders', JSON.stringify(reminders));
+                form.reset();
+                form.classList.add('hidden');
+                loadReminders();
+            };
+        }
+        
+        // 添加提醒表单提交
+        document.getElementById('add-reminder-form').onsubmit = function(e) {
+            e.preventDefault();
+            const form = document.getElementById('add-reminder-form');
+            const reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+            
+            reminders.push({
+                time: form.querySelector('[name="time"]').value,
+                location: form.querySelector('[name="location"]').value,
+                event: form.querySelector('[name="event"]').value
+            });
+            
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            form.reset();
+            form.classList.add('hidden');
+            loadReminders();
+        };
+
+        document.getElementById('add-contact-btn').addEventListener('click', function () {
+            const form = document.getElementById('add-contact-form');
+            form.classList.remove('hidden');
+        });
+
+        // 从 localStorage 加载联系人数据
+        function loadContacts() {
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            const contactList = document.getElementById('contact-list');
+            contactList.innerHTML = '';
+            contacts.forEach((contact, index) => {
+            const fullName = `${contact.lastName || ''}${contact.middleName || ''}${contact.name || ''}`.trim();
+            const displayInfo = `姓名: ${fullName}\n公司: ${contact.company || '无'}\n岗位: ${contact.position || '无'}\n电话: ${contact.phone || '无'}\n邮箱: ${contact.email || '无'}`;
+                const contactItem = document.createElement('div');
+                contactItem.classList.add('border', 'p-2', 'rounded-md', 'mb-2');
+                contactItem.innerHTML = `
+                    <p>名字: ${contact.name}</p>
+                    <p>邮箱: ${contact.email}</p>
+                    <p>电话: ${contact.phone}</p>
+                    <p>公司: ${contact.company}</p>
+                    <p>岗位: ${contact.position}</p>
+                    <button class="bg-blue-500 text-white p-2 rounded-md mr-2 view-contact" data-index="${index}">查看</button>
+                    <button class="bg-yellow-500 text-white p-2 rounded-md mr-2 edit-contact" data-index="${index}">编辑</button>
+                    <button class="bg-red-500 text-white p-2 rounded-md delete-contact" data-index="${index}">删除</button>
+                `;
+                contactList.appendChild(contactItem);
+                
+                // 添加编辑按钮点击事件
+                contactItem.querySelector('.edit-contact').addEventListener('click', function() {
+                    const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+                    const contact = contacts[index];
+                    const form = document.getElementById('add-contact-form');
+                    
+                    // 填充表单数据
+                    form.querySelector('[name="name"]').value = contact.name || '';
+                    form.querySelector('[name="middleName"]').value = contact.middleName || '';
+                    form.querySelector('[name="lastName"]').value = contact.lastName || '';
+                    form.querySelector('[name="nickname"]').value = contact.nickname || '';
+                    form.querySelector('[name="email"]').value = contact.email || '';
+                    form.querySelector('[name="gender"]').value = contact.gender || '男';
+                    form.querySelector('[name="relationship"]').value = contact.relationship || '';
+                    form.querySelector('[name="acquaintance"]').value = contact.acquaintance || '';
+                    form.querySelector('[name="note"]').value = contact.note || '';
+                    form.querySelector('[name="address"]').value = contact.address || '';
+                    form.querySelector('[name="phone"]').value = contact.phone || '';
+                    form.querySelector('[name="pet"]').value = contact.pet || '';
+                    form.querySelector('[name="tags"]').value = contact.tags || '';
+                    
+                    // 显示表单
+                    form.classList.remove('hidden');
+                    
+                    // 更新表单提交事件为编辑模式
+                    form.onsubmit = function(e) {
+                        e.preventDefault();
+                        contacts[index] = {
+                            name: form.querySelector('[name="name"]').value,
+                            middleName: form.querySelector('[name="middleName"]').value,
+                            lastName: form.querySelector('[name="lastName"]').value,
+                            nickname: form.querySelector('[name="nickname"]').value,
+                            email: form.querySelector('[name="email"]').value,
+                            gender: form.querySelector('[name="gender"]').value,
+                            relationship: form.querySelector('[name="relationship"]').value,
+                            acquaintance: form.querySelector('[name="acquaintance"]').value,
+                            note: form.querySelector('[name="note"]').value,
+                            address: form.querySelector('[name="address"]').value,
+                            phone: form.querySelector('[name="phone"]').value,
+                            pet: form.querySelector('[name="pet"]').value,
+                            tags: form.querySelector('[name="tags"]').value
+                        };
+                        localStorage.setItem('contacts', JSON.stringify(contacts));
+                        loadContacts();
+                        form.classList.add('hidden');
+                    };
+                });
+            });
+        }
+
+        // 保存联系人数据到 localStorage
+        function saveContacts(contacts) {
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+            loadContacts();
+        }
+
+        document.getElementById('add-contact-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const contact = {};
+            for (let [key, value] of formData.entries()) {
+                contact[key] = value;
+            }
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            contacts.push(contact);
+            saveContacts(contacts);
+            this.reset();
+            this.classList.add('hidden');
+        });
+
+        // 查看联系人信息
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('view-contact')) {
+                const index = parseInt(e.target.dataset.index);
+                const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+                const contact = contacts[index];
+                const viewDetails = document.getElementById('view-contact-details');
+                const fullName = `${contact.lastName || ''}${contact.middleName || ''}${contact.name || ''}`.trim();
+                viewDetails.innerHTML = `
+                    <p><strong>姓名：</strong>${fullName}</p>
+                    <p><strong>公司：</strong>${contact.company || '无'}</p>
+                    <p><strong>岗位：</strong>${contact.position || '无'}</p>
+                    <p><strong>电话：</strong>${contact.phone || '无'}</p>
+                    <p><strong>邮箱：</strong>${contact.email || '无'}</p>
+                    <p><strong>性别：</strong>${contact.gender || '无'}</p>
+                    <p><strong>与联系人的关系：</strong>${contact.relationship || '无'}</p>
+                    <p><strong>相识方式：</strong>${contact.acquaintance || '无'}</p>
+                    <p><strong>备注：</strong>${contact.note || '无'}</p>
+                    <p><strong>地址：</strong>${contact.address || '无'}</p>
+                    <p><strong>宠物：</strong>${contact.pet || '无'}</p>
+                    <p><strong>标签：</strong>${contact.tags || '无'}</p>
+                `;
+
+                const allSections = document.querySelectorAll('.flex-1 > div');
+                allSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                const viewContactSection = document.getElementById('view-contact');
+                viewContactSection.classList.remove('hidden');
+            }
+        });
+
+        // 返回联系人列表
+        document.getElementById('back-to-contact-list').addEventListener('click', function () {
+            const allSections = document.querySelectorAll('.flex-1 > div');
+            allSections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            const contactManagementSection = document.getElementById('contact-management');
+            contactManagementSection.classList.remove('hidden');
+        });
+
+        // 删除联系人
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('delete-contact')) {
+                const index = parseInt(e.target.dataset.index);
+                const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+                contacts.splice(index, 1);
+                saveContacts(contacts);
+            }
+        });
+
+        document.getElementById('add-diary-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const diary = {};
+            for (let [key, value] of formData.entries()) {
+                diary[key] = value;
+            }
+            const diaryList = document.getElementById('diary-list');
+            const diaryItem = document.createElement('div');
+            diaryItem.classList.add('border', 'p-2', 'rounded-md', 'mb-2');
+            diaryItem.innerHTML = `
+            `;
+            diaryList.appendChild(diaryItem);
+            this.reset();
+        });
+
+        // 页面加载时加载联系人数据
+        window.addEventListener('load', function () {
+            loadContacts();
+            loadInteractions();
+            populateContactSelect();
+        });
+        
+        // 填充联系人下拉菜单
+        function populateContactSelect() {
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            const select = document.getElementById('contact-select');
+            contacts.forEach(contact => {
+                const option = document.createElement('option');
+                option.value = contact.email; // 使用邮箱作为唯一标识
+                option.textContent = `${contact.name} (${contact.email})`;
+                select.appendChild(option);
+            });
+        }
+        
+        // 加载互动历史数据
+        function loadInteractions() {
+            const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+            const interactionList = document.getElementById('interaction-list');
+            interactionList.innerHTML = '';
+            interactions.forEach((interaction, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border p-2">${interaction.interactionTime}</td>
+                    <td class="border p-2">${interaction.event}</td>
+                    <td class="border p-2">${interaction.requirement}</td>
+                    <td class="border p-2">${interaction.solutionTime}</td>
+                    <td class="border p-2">${interaction.feedback}</td>
+                `;
+                interactionList.appendChild(row);
+            });
+        }
+        
+        // 保存互动历史数据
+        function saveInteractions(interactions) {
+            localStorage.setItem('interactions', JSON.stringify(interactions));
+            loadInteractions();
+        }
+        
+        // 处理互动历史表单提交
+        document.getElementById('add-interaction-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const interaction = Object.fromEntries(formData.entries());
+            const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+            interactions.push(interaction);
+            localStorage.setItem('interactions', JSON.stringify(interactions));
+            
+            // 更新联系人数据
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            const contactIndex = contacts.findIndex(c => c.id === interaction.contactId);
+            if (contactIndex !== -1) {
+                if (!contacts[contactIndex].interactions) {
+                    contacts[contactIndex].interactions = [];
+                }
+                contacts[contactIndex].interactions.push(interaction);
+                localStorage.setItem('contacts', JSON.stringify(contacts));
+            }
+            
+            this.reset();
+        });
+        
+        // 页面加载时加载联系人数据
+        window.addEventListener('load', function () {
+            loadContacts();
+            loadInteractions();
+            populateContactSelect();
+        });
+        
+        // 填充联系人下拉菜单
+        function populateContactSelect() {
+            const contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+            const select = document.getElementById('contact-select');
+            contacts.forEach(contact => {
+                const option = document.createElement('option');
+                option.value = contact.email; // 使用邮箱作为唯一标识
+                option.textContent = `${contact.name} (${contact.email})`;
+                select.appendChild(option);
+            });
+        }
+    </script>
+</body>
+
+</html>
